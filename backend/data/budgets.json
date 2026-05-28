@@ -1,0 +1,23 @@
+[
+  {
+    "id": "bud-1",
+    "category": "Food & Dining",
+    "limit": 550,
+    "month": 5,
+    "year": 2025
+  },
+  {
+    "id": "bud-2",
+    "category": "Entertainment",
+    "limit": 200,
+    "month": 5,
+    "year": 2025
+  },
+  {
+    "id": "98529d24-ce97-4049-8659-c491fedcc211",
+    "category": "Healthcare",
+    "limit": 400,
+    "month": 5,
+    "year": 2025
+  }
+]
