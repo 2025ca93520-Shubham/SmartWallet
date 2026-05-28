@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cat-1",
+    "name": "Updated Food",
+    "icon": "🍕",
+    "color": "#f97316"
+  },
+  {
+    "id": "cat-2",
+    "name": "Transportation",
+    "icon": "🚗",
+    "color": "#06b6d4"
+  },
+  {
+    "id": "cat-3",
+    "name": "Entertainment",
+    "icon": "🎬",
+    "color": "#a855f7"
+  },
+  {
+    "id": "cat-4",
+    "name": "Shopping",
+    "icon": "🛍️",
+    "color": "#ec4899"
+  },
+  {
+    "id": "cat-5",
+    "name": "Utilities",
+    "icon": "💡",
+    "color": "#eab308"
+  },
+  {
+    "id": "cat-6",
+    "name": "Healthcare",
+    "icon": "🏥",
+    "color": "#ef4444"
+  },
+  {
+    "id": "cat-7",
+    "name": "Education",
+    "icon": "📚",
+    "color": "#3b82f6"
+  },
+  {
+    "id": "1ac27abf-62fa-4ae3-b474-a7c1427af4aa",
+    "name": "Gym",
+    "icon": "🏋️",
+    "color": "#ef4444"
+  }
+]
