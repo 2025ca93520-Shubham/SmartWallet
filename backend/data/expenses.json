@@ -1,0 +1,31 @@
+[
+  {
+    "id": "exp-1",
+    "amount": 90,
+    "category": "Food & Dining",
+    "description": "Updated grocery run",
+    "date": "2025-05-26",
+    "paymentMethod": "debit",
+    "isRecurring": false,
+    "notes": "Weekly"
+  },
+  {
+    "id": "ca7cceb3-7053-400c-8ed2-e3c453567ec2",
+    "amount": 120,
+    "category": "Utilities",
+    "description": "Electric bill",
+    "date": "2025-06-01",
+    "paymentMethod": "credit",
+    "isRecurring": true,
+    "notes": "Monthly"
+  }
+]-8ed2-e3c453567ec2",
+    "amount": 120,
+    "category": "Utilities",
+    "description": "Electric bill",
+    "date": "2025-06-01",
+    "paymentMethod": "credit",
+    "isRecurring": true,
+    "notes": "Monthly"
+  }
+]

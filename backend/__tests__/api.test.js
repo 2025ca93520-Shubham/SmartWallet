@@ -179,4 +179,75 @@ describe('Backend API Tests', () => {
       expect(res.body.data.id).toBe('cat-8');
     });
   });
+
+  describe('Expenses API', () => {
+    it('should get all expenses', async () => {
+      const res = await request(app).get('/api/expenses');
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('success');
+      expect(Array.isArray(res.body.data)).toBe(true);
+    });
+
+    it('should get expense by ID', async () => {
+      const res = await request(app).get('/api/expenses/exp-1');
+      expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe('exp-1');
+    });
+
+    it('should create a new expense', async () => {
+      const newExpense = {
+        amount: 120,
+        category: 'Utilities',
+        description: 'Electric bill',
+        date: '2025-06-01',
+        paymentMethod: 'credit',
+        isRecurring: true,
+        notes: 'Monthly',
+      };
+      const res = await request(app).post('/api/expenses').send(newExpense);
+      expect(res.status).toBe(201);
+      expect(res.body.status).toBe('success');
+      expect(res.body.data.amount).toBe(120);
+      expect(res.body.data.paymentMethod).toBe('credit');
+      expect(res.body.data.isRecurring).toBe(true);
+    });
+
+    it('should update an expense', async () => {
+      const updateData = {
+        amount: 90,
+        category: 'Food & Dining',
+        description: 'Updated grocery run',
+        date: '2025-05-26',
+        paymentMethod: 'debit',
+        isRecurring: false,
+        notes: 'Weekly',
+      };
+      const res = await request(app).put('/api/expenses/exp-1').send(updateData);
+      expect(res.status).toBe(200);
+      expect(res.body.data.amount).toBe(90);
+      expect(res.body.data.description).toBe('Updated grocery run');
+    });
+
+    it('should delete an expense', async () => {
+      const res = await request(app).delete('/api/expenses/exp-2');
+      expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe('exp-2');
+    });
+
+    it('should return 404 for non-existent expense', async () => {
+      const res = await request(app).get('/api/expenses/nonexistent');
+      expect(res.status).toBe(404);
+    });
+
+    it('should reject expense with negative amount', async () => {
+      const newExpense = {
+        amount: -10,
+        category: 'Food',
+        description: 'Test',
+        date: '2025-06-01',
+      };
+      const res = await request(app).post('/api/expenses').send(newExpense);
+      expect(res.status).toBe(400);
+    });
+  });
 });
