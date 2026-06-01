@@ -11,22 +11,24 @@ class DataStore {
       transactions: [],
       budgets: [],
       categories: [],
+      expenses: [],
     };
   }
 
   async loadData() {
     try {
-      const [transactions, budgets, categories] = await Promise.all([
+      const [transactions, budgets, categories, expenses] = await Promise.all([
         this.loadFile('transactions.json'),
         this.loadFile('budgets.json'),
         this.loadFile('categories.json'),
+        this.loadFile('expenses.json'),
       ]);
 
-      this.data = { transactions, budgets, categories };
+      this.data = { transactions, budgets, categories, expenses };
       console.log('Data loaded successfully from JSON files');
     } catch (error) {
       console.error('Error loading data:', error);
-      this.data = { transactions: [], budgets: [], categories: [] };
+      this.data = { transactions: [], budgets: [], categories: [], expenses: [] };
     }
   }
 
@@ -56,6 +58,7 @@ class DataStore {
       this.saveFile('transactions.json', this.data.transactions),
       this.saveFile('budgets.json', this.data.budgets),
       this.saveFile('categories.json', this.data.categories),
+      this.saveFile('expenses.json', this.data.expenses),
     ]);
   }
 }
