@@ -19,7 +19,11 @@ export class BudgetService {
       throw error;
     }
 
-    const budget = new Budget(uuidv4(), data.category, data.limit, data.month, data.year);
+    const budget = new Budget(
+      uuidv4(), data.category, data.limit,
+      data.month, data.year,
+      data.startMonth, data.startYear, data.endMonth, data.endYear
+    );
 
     dataStore.data.budgets.push(budget);
     return budget;
@@ -46,6 +50,10 @@ export class BudgetService {
       limit: data.limit,
       month: data.month,
       year: data.year,
+      startMonth: data.startMonth,
+      startYear: data.startYear,
+      endMonth: data.endMonth,
+      endYear: data.endYear,
     };
 
     return dataStore.data.budgets[index];

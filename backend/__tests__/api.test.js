@@ -134,6 +134,65 @@ describe('Backend API Tests', () => {
       expect(res.status).toBe(200);
       expect(res.body.data.id).toBe('bud-3');
     });
+
+    it('should create a budget with month range', async () => {
+      const newBudget = {
+        category: 'Utilities',
+        limit: 300,
+        startMonth: 3,
+        startYear: 2025,
+        endMonth: 6,
+        endYear: 2025,
+      };
+      const res = await request(app).post('/api/budgets').send(newBudget);
+      expect(res.status).toBe(201);
+      expect(res.body.status).toBe('success');
+      expect(res.body.data.limit).toBe(300);
+      expect(res.body.data.startMonth).toBe(3);
+      expect(res.body.data.startYear).toBe(2025);
+      expect(res.body.data.endMonth).toBe(6);
+      expect(res.body.data.endYear).toBe(2025);
+    });
+
+    it('should reject budget without month/year or range', async () => {
+      const newBudget = {
+        category: 'Shopping',
+        limit: 200,
+      };
+      const res = await request(app).post('/api/budgets').send(newBudget);
+      expect(res.status).toBe(400);
+    });
+
+    it('should reject budget with end month before start month', async () => {
+      const newBudget = {
+        category: 'Travel',
+        limit: 500,
+        startMonth: 6,
+        startYear: 2025,
+        endMonth: 3,
+        endYear: 2025,
+      };
+      const res = await request(app).post('/api/budgets').send(newBudget);
+      expect(res.status).toBe(400);
+    });
+
+    it('should update a budget with month range', async () => {
+      const updateData = {
+        category: 'Food & Dining',
+        limit: 600,
+        startMonth: 1,
+        startYear: 2025,
+        endMonth: 12,
+        endYear: 2025,
+      };
+      const res = await request(app).put('/api/budgets/bud-2').send(updateData);
+      expect(res.status).toBe(200);
+      expect(res.body.data.limit).toBe(600);
+      expect(res.body.data.startMonth).toBe(1);
+      expect(res.body.data.startYear).toBe(2025);
+      expect(res.body.data.endMonth).toBe(12);
+      expect(res.body.data.endYear).toBe(2025);
+    });
   });
 
   describe('Categories API', () => {
