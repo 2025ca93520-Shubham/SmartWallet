@@ -1,8 +1,8 @@
 [
   {
     "id": "cat-1",
-    "name": "Updated Food",
-    "icon": "🍕",
+    "name": "Food & Dining",
+    "icon": "🍽️",
     "color": "#f97316"
   },
   {
@@ -42,9 +42,9 @@
     "color": "#3b82f6"
   },
   {
-    "id": "1ac27abf-62fa-4ae3-b474-a7c1427af4aa",
-    "name": "Gym",
-    "icon": "🏋️",
-    "color": "#ef4444"
+    "id": "cat-8",
+    "name": "Travel",
+    "icon": "✈️",
+    "color": "#10b981"
   }
 ]
