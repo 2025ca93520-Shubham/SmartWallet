@@ -3,7 +3,7 @@
     "id": "txn-1",
     "amount": 50,
     "category": "Food & Dining",
-    "description": "Updated lunch",
+    "description": "Lunch",
     "date": "2025-05-20",
     "type": "expense"
   },
@@ -32,7 +32,7 @@
     "type": "expense"
   },
   {
-    "id": "b1356a84-9d1f-4885-9569-68406b4a8a0b",
+    "id": "txn-5",
     "amount": 75.5,
     "category": "Food & Dining",
     "description": "Dinner",
