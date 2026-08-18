@@ -18,7 +18,7 @@ export class SavingsGoalService {
       throw error;
     }
 
-    const errors = SavingsGoal.validateFunds(data);
+    const errors = SavingsGoal.validateFunds(data, goal);
     if (errors.length > 0) {
       const error = new Error(errors.join(', '));
       error.statusCode = 400;

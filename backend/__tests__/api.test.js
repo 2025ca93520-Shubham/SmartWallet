@@ -368,5 +368,15 @@ describe('Backend API Tests', () => {
       const res = await request(app).post('/api/savings-goals/unknown-goal/add-funds').send({ amount: 50 });
       expect(res.status).toBe(404);
     });
+
+    it('should return 400 when amount would exceed the goal target', async () => {
+      const goal = await request(app).get('/api/savings-goals/goal-2');
+      const overAmount = goal.body.data.targetAmount - goal.body.data.currentAmount + 1;
+
+      const res = await request(app)
+        .post('/api/savings-goals/goal-2/add-funds')
+        .send({ amount: overAmount });
+      expect(res.status).toBe(400);
+    });
   });
 });
