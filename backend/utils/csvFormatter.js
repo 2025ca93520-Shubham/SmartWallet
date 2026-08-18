@@ -10,9 +10,10 @@ const formatDate = (value) => {
 
 export const expensesToCsv = (expenses) => {
   const rows = [
-    ['Date', 'Category', 'Amount', 'Notes'],
+    ['Date', 'Expense', 'Category', 'Amount', 'Notes'],
     ...expenses.map((expense) => [
       formatDate(expense.date),
+      expense.description,
       expense.category,
       Number(expense.amount || 0).toFixed(2),
       expense.notes,

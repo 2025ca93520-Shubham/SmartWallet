@@ -21,3 +21,11 @@ export async function exportExpenses(category = 'all') {
   });
   return response.data;
 }
+
+export async function exportExpenseReport(category = 'all') {
+  const response = await axios.get(`${API_BASE_URL}/api/expenses/report`, {
+    params: { category },
+    responseType: 'blob',
+  });
+  return response.data;
+}
