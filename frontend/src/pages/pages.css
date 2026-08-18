@@ -12,6 +12,12 @@
 .toolbar { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; margin-bottom:16px; }
 .toolbar span { color:var(--muted); }
 .toolbar select { border:1px solid var(--border); border-radius:10px; padding:9px 12px; background:#fff; min-width:190px; }
+.export-menu { position:relative; display:flex; }
+.export-button { border-radius:10px 0 0 10px; }
+.export-toggle { border-left:1px solid rgba(255,255,255,.35); border-radius:0 10px 10px 0; padding-inline:11px; }
+.export-options { position:absolute; z-index:5; top:calc(100% + 6px); right:0; min-width:155px; padding:5px; background:#fff; border:1px solid var(--border); border-radius:10px; box-shadow:0 10px 24px rgba(15,23,42,.12); }
+.export-options button { display:block; width:100%; padding:9px 10px; border:0; border-radius:7px; background:transparent; color:var(--text); text-align:left; cursor:pointer; }
+.export-options button:hover { background:var(--primary-soft); }
 .state { min-height:220px; display:grid; place-items:center; align-content:center; gap:8px; color:var(--muted); }
 .spinner { width:24px; height:24px; border:3px solid #302898; border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }

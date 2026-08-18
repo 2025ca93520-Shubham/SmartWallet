@@ -199,7 +199,7 @@ describe('Backend API Tests', () => {
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toMatch(/text\/csv/);
       expect(res.headers['content-disposition']).toContain('expenses.csv');
-      expect(res.text).toContain('Date,Category,Amount,Notes');
+      expect(res.text).toContain('Date,Expense,Category,Amount,Notes');
       expect(res.text).toMatch(/\d{2}\/\d{2}\/\d{4}/);
     });
 
@@ -211,6 +211,17 @@ describe('Backend API Tests', () => {
       expect(res.status).toBe(200);
       expect(res.text).toContain('Food & Dining');
       expect(res.text).not.toContain('Utilities');
+    });
+
+    it('should export an expense summary as PDF', async () => {
+      const res = await request(app)
+        .get('/api/expenses/report')
+        .query({ month: 5, year: 2025 });
+
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toMatch(/application\/pdf/);
+      expect(res.headers['content-disposition']).toContain('expense-report.pdf');
+      expect(res.body.subarray(0, 5).toString()).toBe('%PDF-');
     });
 
     it('should create a new expense', async () => {

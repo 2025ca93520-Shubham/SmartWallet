@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchCategories } from '../services/categoryService';
-import { exportExpenses, fetchExpenses } from '../services/expenseService';
+import { exportExpenseReport, exportExpenses, fetchExpenses } from '../services/expenseService';
 import './pages.css';
 
 const money = (amount) =>
@@ -19,6 +19,7 @@ export default function ExpensesPage() {
   const [category, setCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
@@ -37,16 +38,19 @@ export default function ExpensesPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleExport = async () => {
+  const handleExport = async (format) => {
     setExporting(true);
+    setExportMenuOpen(false);
     try {
-      const blob = await exportExpenses(category);
+      const blob = format === 'pdf'
+        ? await exportExpenseReport(category)
+        : await exportExpenses(category);
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'expenses.csv';
+      link.download = format === 'pdf' ? 'expense-report.pdf' : 'expenses.csv';
       link.click();
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 0);
     } catch (err) {
       setError(err?.response?.data?.message || 'Unable to export expenses right now.');
     } finally {
@@ -83,9 +87,26 @@ export default function ExpensesPage() {
           <option value="all">All categories</option>
           {categories.map((item) => <option key={item.id} value={item.name}>{item.icon ? `${item.icon} ` : ''}{item.name}</option>)}
         </select>
-        <button className="button secondary" onClick={handleExport} disabled={exporting}>
-          {exporting ? 'Exporting...' : 'Export CSV'}
-        </button>
+        <div className="export-menu">
+          <button className="button secondary export-button" onClick={() => setExportMenuOpen((open) => !open)} disabled={exporting}>
+            {exporting ? 'Exporting...' : 'Export'}
+          </button>
+          <button
+            className="button secondary export-toggle"
+            onClick={() => setExportMenuOpen((open) => !open)}
+            aria-label="Choose export format"
+            aria-expanded={exportMenuOpen}
+            disabled={exporting}
+          >
+            ▾
+          </button>
+          {exportMenuOpen && (
+            <div className="export-options" role="menu">
+              <button onClick={() => handleExport('pdf')} role="menuitem">Export as PDF</button>
+              <button onClick={() => handleExport('csv')} role="menuitem">Export as CSV</button>
+            </div>
+          )}
+        </div>
       </div>
 
       {loading ? (
