@@ -1,0 +1,22 @@
+[
+  {
+    "id": "exp-1",
+    "amount": 120,
+    "category": "Utilities",
+    "description": "Electric bill",
+    "date": "2025-06-01",
+    "paymentMethod": "credit",
+    "isRecurring": true,
+    "notes": "Monthly"
+  },
+  {
+    "id": "exp-2",
+    "amount": 75,
+    "category": "Food & Dining",
+    "description": "Groceries",
+    "date": "2025-05-24",
+    "paymentMethod": "debit",
+    "isRecurring": false,
+    "notes": "Weekly"
+  }
+]

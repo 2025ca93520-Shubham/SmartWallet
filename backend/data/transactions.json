@@ -1,0 +1,42 @@
+[
+  {
+    "id": "txn-1",
+    "amount": 50,
+    "category": "Food & Dining",
+    "description": "Lunch",
+    "date": "2025-05-20",
+    "type": "expense"
+  },
+  {
+    "id": "txn-2",
+    "amount": 2500,
+    "category": "Salary",
+    "description": "Monthly salary",
+    "date": "2025-05-01",
+    "type": "income"
+  },
+  {
+    "id": "txn-3",
+    "amount": 120,
+    "category": "Transportation",
+    "description": "Monthly transit pass",
+    "date": "2025-05-15",
+    "type": "expense"
+  },
+  {
+    "id": "txn-4",
+    "amount": 89.99,
+    "category": "Entertainment",
+    "description": "Movie tickets",
+    "date": "2025-05-22",
+    "type": "expense"
+  },
+  {
+    "id": "txn-5",
+    "amount": 75.5,
+    "category": "Food & Dining",
+    "description": "Dinner",
+    "date": "2025-05-25",
+    "type": "expense"
+  }
+]

@@ -1,0 +1,26 @@
+* { box-sizing: border-box; }
+:root { --bg:#f5f7fb; --card:#fff; --text:#172033; --muted:#64748b; --border:#e2e8f0; --primary:#302898; --primary-soft:#eef2ff; }
+body { margin:0; background:var(--bg); color:var(--text); font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+button,select,input { font:inherit; }
+button { cursor:pointer; }
+.app-shell { min-height:100vh; }
+.sidebar { position:fixed; inset:0 auto 0 0; width:250px; background:#fff; border-right:1px solid var(--border); display:flex; flex-direction:column; padding:24px 16px; }
+.brand { display:flex; gap:12px; align-items:center; padding:0 10px 24px; border-bottom:1px solid var(--border); }
+.brand-mark { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:var(--primary); color:#fff; font-weight:800; }
+.brand strong,.brand span { display:block; }
+.brand span { color:var(--muted); font-size:12px; margin-top:2px; }
+.sidebar-nav { display:grid; gap:6px; padding-top:20px; }
+.nav-link { display:flex; gap:12px; align-items:center; padding:11px 12px; border-radius:10px; color:#475569; text-decoration:none; font-weight:600; }
+.nav-link:hover { background:#f8fafc; }
+.nav-link.active { background:var(--primary-soft); color:#302898; }
+.nav-link span { width:24px; text-align:center; }
+.sidebar-footer { margin-top:auto; padding:14px 12px; border-top:1px solid var(--border); color:var(--muted); }
+.sidebar-footer span,.sidebar-footer small { display:block; }
+.sidebar-footer small { margin-top:4px; font-size:11px; }
+.main-shell { margin-left:250px; min-height:100vh; }
+.topbar { height:76px; background:rgba(255,255,255,.95); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 34px; position:sticky; top:0; z-index:10; }
+.topbar h1 { margin:2px 0 0; font-size:18px; }
+.eyebrow { color:var(--primary); font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; }
+.avatar { width:38px; height:38px; border-radius:50%; display:grid; place-items:center; background:var(--primary-soft); color:#4338ca; font-weight:800; }
+.content { max-width:1300px; margin:auto; padding:32px; }
+@media(max-width:800px){ .sidebar{position:static;width:100%;height:auto}.sidebar-nav{display:flex;overflow:auto}.sidebar-footer{display:none}.main-shell{margin-left:0}.topbar{padding:0 18px}.content{padding:20px} }

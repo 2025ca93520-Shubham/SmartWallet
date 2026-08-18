@@ -1,0 +1,16 @@
+[
+  {
+    "id": "goal-1",
+    "name": "Emergency Fund",
+    "targetAmount": 5000,
+    "targetDate": "2026-12-31",
+    "currentAmount": 1200
+  },
+  {
+    "id": "goal-2",
+    "name": "Vacation",
+    "targetAmount": 2000,
+    "targetDate": "2026-06-30",
+    "currentAmount": 400
+  }
+]
