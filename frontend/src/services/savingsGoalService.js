@@ -18,3 +18,8 @@ export async function fetchSavingsGoals() {
   const response = await axios.get(`${API_BASE_URL}/api/savings-goals`);
   return normalizeSavingsGoals(response.data);
 }
+
+export async function addFundsToSavingsGoal(id, amount) {
+  const response = await axios.post(`${API_BASE_URL}/api/savings-goals/${id}/add-funds`, { amount });
+  return response.data?.data ?? response.data;
+}

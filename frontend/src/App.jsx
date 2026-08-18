@@ -52,6 +52,10 @@ export default function App() {
     loadSavingsGoals();
   }, []);
 
+  const handleFundsAdded = (updatedGoal) => {
+    setSavingsGoals((current) => current.map((goal) => (goal.id === updatedGoal.id ? updatedGoal : goal)));
+  };
+
   const handleBudgetSubmit = async (data) => {
     try {
       if (data.id) {
@@ -250,7 +254,7 @@ export default function App() {
 
         <div style={{ display: 'grid', gap: '0.75rem' }}>
           {savingsGoals.map((goal) => (
-            <SavingsGoalCard key={goal.id} goal={goal} />
+            <SavingsGoalCard key={goal.id} goal={goal} onFundsAdded={handleFundsAdded} />
           ))}
         </div>
       </div>
