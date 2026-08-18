@@ -325,4 +325,31 @@ describe('Backend API Tests', () => {
       expect(Array.isArray(res.body.data)).toBe(true);
     });
   });
+
+  describe('Savings Goals API', () => {
+    it('should get all savings goals with progress fields', async () => {
+      const res = await request(app).get('/api/savings-goals');
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('success');
+      expect(Array.isArray(res.body.data)).toBe(true);
+      const goal = res.body.data[0];
+      expect(goal).toHaveProperty('remainingAmount');
+      expect(goal).toHaveProperty('progressPercentage');
+    });
+
+    it('should get savings goal by ID with remaining amount and progress percentage', async () => {
+      const res = await request(app).get('/api/savings-goals/goal-1');
+      expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe('goal-1');
+      expect(res.body.data.remainingAmount).toBe(res.body.data.targetAmount - res.body.data.currentAmount);
+      expect(res.body.data.progressPercentage).toBe(
+        Math.round((res.body.data.currentAmount / res.body.data.targetAmount) * 100),
+      );
+    });
+
+    it('should return 404 for unknown savings goal', async () => {
+      const res = await request(app).get('/api/savings-goals/unknown-goal');
+      expect(res.status).toBe(404);
+    });
+  });
 });
