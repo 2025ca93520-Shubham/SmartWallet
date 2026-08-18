@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import CategoryDropdown from './components/CategoryDropdown';
 import BudgetForm from './components/BudgetForm';
+import SavingsGoalCard from './components/SavingsGoalCard';
 import { fetchCategories } from './services/categoryService';
 import { fetchBudgets, createBudget, updateBudget } from './services/budgetService';
+import { fetchSavingsGoals } from './services/savingsGoalService';
 
 export default function App() {
   const [categories, setCategories] = useState([]);
@@ -12,6 +14,8 @@ export default function App() {
   const [budgets, setBudgets] = useState([]);
   const [editingBudget, setEditingBudget] = useState(null);
   const [budgetError, setBudgetError] = useState('');
+  const [savingsGoals, setSavingsGoals] = useState([]);
+  const [savingsGoalsError, setSavingsGoalsError] = useState('');
 
   useEffect(() => {
     async function loadCategories() {
@@ -34,8 +38,18 @@ export default function App() {
       }
     }
 
+    async function loadSavingsGoals() {
+      try {
+        const data = await fetchSavingsGoals();
+        setSavingsGoals(data);
+      } catch (loadError) {
+        setSavingsGoalsError('Unable to load savings goals right now.');
+      }
+    }
+
     loadCategories();
     loadBudgets();
+    loadSavingsGoals();
   }, []);
 
   const handleBudgetSubmit = async (data) => {
@@ -208,6 +222,37 @@ export default function App() {
             ))}
           </div>
         )}
+      </div>
+
+      <div
+        style={{
+          maxWidth: '640px',
+          margin: '2rem auto 0',
+          background: '#fff',
+          borderRadius: '1rem',
+          border: '1px solid #e7edf7',
+          boxShadow: '0 16px 40px rgba(15, 23, 42, 0.08)',
+          padding: '2rem',
+        }}
+      >
+        <div style={{ marginBottom: '1.5rem' }}>
+          <p style={{ margin: 0, color: '#52607a', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            Finance setup
+          </p>
+          <h1 style={{ margin: '0.4rem 0 0', fontSize: '2rem', color: '#111827' }}>Savings goals</h1>
+        </div>
+
+        {savingsGoalsError && (
+          <p role="alert" style={{ color: '#b91c1c', fontWeight: 600 }}>
+            {savingsGoalsError}
+          </p>
+        )}
+
+        <div style={{ display: 'grid', gap: '0.75rem' }}>
+          {savingsGoals.map((goal) => (
+            <SavingsGoalCard key={goal.id} goal={goal} />
+          ))}
+        </div>
       </div>
     </main>
   );
