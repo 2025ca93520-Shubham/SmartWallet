@@ -325,4 +325,48 @@ describe('Backend API Tests', () => {
       expect(Array.isArray(res.body.data)).toBe(true);
     });
   });
+
+  describe('Savings Goals API', () => {
+    it('should get all savings goals', async () => {
+      const res = await request(app).get('/api/savings-goals');
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('success');
+      expect(Array.isArray(res.body.data)).toBe(true);
+    });
+
+    it('should get savings goal by ID', async () => {
+      const res = await request(app).get('/api/savings-goals/goal-1');
+      expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe('goal-1');
+    });
+
+    it('should return 404 for unknown savings goal', async () => {
+      const res = await request(app).get('/api/savings-goals/unknown-goal');
+      expect(res.status).toBe(404);
+    });
+
+    it('should add funds to a savings goal and update current amount', async () => {
+      const before = await request(app).get('/api/savings-goals/goal-2');
+      const startAmount = before.body.data.currentAmount;
+
+      const res = await request(app).post('/api/savings-goals/goal-2/add-funds').send({ amount: 100 });
+      expect(res.status).toBe(200);
+      expect(res.body.data.currentAmount).toBe(startAmount + 100);
+    });
+
+    it('should return 400 when amount is missing', async () => {
+      const res = await request(app).post('/api/savings-goals/goal-2/add-funds').send({});
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 400 when amount is not positive', async () => {
+      const res = await request(app).post('/api/savings-goals/goal-2/add-funds').send({ amount: -50 });
+      expect(res.status).toBe(400);
+    });
+
+    it('should return 404 when adding funds to unknown savings goal', async () => {
+      const res = await request(app).post('/api/savings-goals/unknown-goal/add-funds').send({ amount: 50 });
+      expect(res.status).toBe(404);
+    });
+  });
 });
