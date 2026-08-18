@@ -13,3 +13,11 @@ export async function fetchExpenses() {
   const response = await axios.get(`${API_BASE_URL}/api/expenses`);
   return normalizeExpenses(response.data);
 }
+
+export async function exportExpenses(category = 'all') {
+  const response = await axios.get(`${API_BASE_URL}/api/expenses/export`, {
+    params: { category },
+    responseType: 'blob',
+  });
+  return response.data;
+}

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchCategories } from '../services/categoryService';
-import { fetchExpenses } from '../services/expenseService';
+import { exportExpenses, fetchExpenses } from '../services/expenseService';
 import './pages.css';
 
 const money = (amount) =>
@@ -18,6 +18,7 @@ export default function ExpensesPage() {
   const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
@@ -35,6 +36,23 @@ export default function ExpensesPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const blob = await exportExpenses(category);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'expenses.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Unable to export expenses right now.');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const filteredExpenses = useMemo(() => {
     return [...expenses]
@@ -65,6 +83,9 @@ export default function ExpensesPage() {
           <option value="all">All categories</option>
           {categories.map((item) => <option key={item.id} value={item.name}>{item.icon ? `${item.icon} ` : ''}{item.name}</option>)}
         </select>
+        <button className="button secondary" onClick={handleExport} disabled={exporting}>
+          {exporting ? 'Exporting...' : 'Export CSV'}
+        </button>
       </div>
 
       {loading ? (

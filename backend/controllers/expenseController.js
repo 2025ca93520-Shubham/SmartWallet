@@ -1,11 +1,27 @@
 import { expenseService } from '../services/expenseService.js';
 import { dataStore } from '../services/dataStore.js';
 import { successResponse, errorResponse } from '../utils/responseFormatter.js';
+import { expensesToCsv } from '../utils/csvFormatter.js';
 
 export const getAllExpenses = (req, res, next) => {
   try {
     const expenses = expenseService.getAll();
     successResponse(res, expenses);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const exportExpenses = (req, res, next) => {
+  try {
+    const expenses = expenseService.getAll();
+    const filteredExpenses = req.query.category && req.query.category !== 'all'
+      ? expenses.filter((expense) => expense.category === req.query.category)
+      : expenses;
+
+    res.type('text/csv');
+    res.attachment('expenses.csv');
+    res.send(expensesToCsv(filteredExpenses));
   } catch (error) {
     next(error);
   }
