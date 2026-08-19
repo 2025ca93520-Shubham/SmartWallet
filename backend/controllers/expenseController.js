@@ -52,6 +52,41 @@ const buildAllTimeSummary = (expenses, budgets, category) => {
   };
 };
 
+const createBadRequest = (message) => Object.assign(new Error(message), { statusCode: 400 });
+
+const parseDateRange = (query) => {
+  const { from, to } = query;
+  const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+  const validateDate = (value, name) => {
+    if (value === undefined) return null;
+    if (!datePattern.test(value)) {
+      throw createBadRequest(`${name} must be a valid date in YYYY-MM-DD format`);
+    }
+    const date = new Date(`${value}T00:00:00.000Z`);
+    if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+      throw createBadRequest(`${name} must be a valid date in YYYY-MM-DD format`);
+    }
+    return value;
+  };
+
+  const fromDate = validateDate(from, 'From date');
+  const toDate = validateDate(to, 'To date');
+  if (fromDate && toDate && fromDate > toDate) {
+    throw createBadRequest('From date must be on or before the to date');
+  }
+  return { from: fromDate, to: toDate };
+};
+
+const filterExpenses = (expenses, { category, from, to }) => expenses.filter((expense) => {
+  const expenseDate = new Date(expense.date);
+  const normalizedDate = Number.isNaN(expenseDate.getTime())
+    ? ''
+    : expenseDate.toISOString().slice(0, 10);
+  return (!category || expense.category === category)
+    && (!from || normalizedDate >= from)
+    && (!to || normalizedDate <= to);
+});
+
 export const getAllExpenses = (req, res, next) => {
   try {
     const expenses = expenseService.getAll();
@@ -63,10 +98,10 @@ export const getAllExpenses = (req, res, next) => {
 
 export const exportExpenses = (req, res, next) => {
   try {
+    const dateRange = parseDateRange(req.query);
     const expenses = expenseService.getAll();
-    const filteredExpenses = req.query.category && req.query.category !== 'all'
-      ? expenses.filter((expense) => expense.category === req.query.category)
-      : expenses;
+    const category = req.query.category && req.query.category !== 'all' ? req.query.category : null;
+    const filteredExpenses = filterExpenses(expenses, { category, ...dateRange });
 
     res.type('text/csv');
     res.attachment('expenses.csv');
@@ -78,12 +113,23 @@ export const exportExpenses = (req, res, next) => {
 
 export const exportExpenseReport = async (req, res, next) => {
   try {
+    const dateRange = parseDateRange(req.query);
     const month = req.query.month ? parseInt(req.query.month, 10) : null;
     const year = req.query.year ? parseInt(req.query.year, 10) : null;
     const category = req.query.category && req.query.category !== 'all' ? req.query.category : null;
-    const summary = month === null && year === null
-      ? buildAllTimeSummary(dataStore.data.expenses, dataStore.data.budgets, category)
-      : dashboardService.getSummary(month, year);
+    const summary = dateRange.from || dateRange.to
+      ? buildAllTimeSummary(
+        filterExpenses(dataStore.data.expenses, { category, ...dateRange }),
+        dataStore.data.budgets,
+        null,
+      )
+      : month === null && year === null
+        ? buildAllTimeSummary(dataStore.data.expenses, dataStore.data.budgets, category)
+        : dashboardService.getSummary(month, year);
+
+    if (dateRange.from || dateRange.to) {
+      summary.period = { label: `${dateRange.from || 'Beginning'} to ${dateRange.to || 'End'}` };
+    }
 
     if (month !== null || year !== null) {
       const targetMonth = month ?? new Date().getMonth() + 1;
