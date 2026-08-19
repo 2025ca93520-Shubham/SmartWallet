@@ -14,6 +14,11 @@ export async function fetchExpenses() {
   return normalizeExpenses(response.data);
 }
 
+export async function createExpense(expense) {
+  const response = await axios.post(`${API_BASE_URL}/api/expenses`, expense);
+  return response.data?.data ?? response.data;
+}
+
 export async function exportExpenses(category = 'all') {
   const response = await axios.get(`${API_BASE_URL}/api/expenses/export`, {
     params: { category },

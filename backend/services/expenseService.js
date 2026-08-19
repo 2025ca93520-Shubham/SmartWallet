@@ -12,7 +12,16 @@ export class ExpenseService {
   }
 
   create(data) {
-    const errors = Expense.validate(data);
+    const normalizedData = {
+      ...data,
+      expenseName: Expense.resolveExpenseName(data),
+      amount: Number(data.amount),
+      paymentMethod: (data.paymentMethod || '').toString().trim(),
+      category: (data.category || '').toString().trim(),
+      date: (data.date || '').toString().trim(),
+    };
+
+    const errors = Expense.validate(normalizedData);
     if (errors.length > 0) {
       const error = new Error(errors.join(', '));
       error.statusCode = 400;
@@ -21,13 +30,11 @@ export class ExpenseService {
 
     const expense = new Expense(
       uuidv4(),
-      data.amount,
-      data.category,
-      data.description,
-      data.date,
-      data.paymentMethod,
-      data.isRecurring,
-      data.notes,
+      normalizedData.expenseName,
+      normalizedData.amount,
+      normalizedData.category,
+      normalizedData.date,
+      normalizedData.paymentMethod
     );
 
     dataStore.data.expenses.push(expense);
@@ -42,7 +49,17 @@ export class ExpenseService {
       throw error;
     }
 
-    const errors = Expense.validate(data);
+    const existingExpense = dataStore.data.expenses[index];
+    const normalizedData = {
+      ...data,
+      expenseName: Expense.resolveExpenseName(data),
+      amount: Number(data.amount),
+      paymentMethod: (data.paymentMethod || '').toString().trim(),
+      category: (data.category || '').toString().trim(),
+      date: (data.date || '').toString().trim(),
+    };
+
+    const errors = Expense.validate(normalizedData);
     if (errors.length > 0) {
       const error = new Error(errors.join(', '));
       error.statusCode = 400;
@@ -51,13 +68,14 @@ export class ExpenseService {
 
     dataStore.data.expenses[index] = {
       id,
-      amount: data.amount,
-      category: data.category,
-      description: data.description,
-      date: data.date,
-      paymentMethod: data.paymentMethod,
-      isRecurring: data.isRecurring,
-      notes: data.notes,
+      expenseName: normalizedData.expenseName,
+      description: normalizedData.expenseName,
+      amount: normalizedData.amount,
+      category: normalizedData.category,
+      date: normalizedData.date,
+      paymentMethod: normalizedData.paymentMethod,
+      createdAt: existingExpense.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     return dataStore.data.expenses[index];
