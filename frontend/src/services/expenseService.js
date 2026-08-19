@@ -19,7 +19,7 @@ export async function createExpense(expense) {
   return response.data?.data ?? response.data;
 }
 
-export async function exportExpenses(category = 'all') {
+export async function exportExpenses(category = 'all', dateRange = {}) {
   const response = await axios.get(`${API_BASE_URL}/api/expenses/export`, {
     params: { category },
     responseType: 'blob',

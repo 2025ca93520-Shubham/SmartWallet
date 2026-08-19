@@ -23,6 +23,8 @@ export default function ExpensesPage() {
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
@@ -47,13 +49,17 @@ export default function ExpensesPage() {
   useEffect(() => { load(); }, [load]);
 
   const handleExport = async (format) => {
+    if (fromDate && toDate && fromDate > toDate) {
+      setError('From date must be on or before the to date.');
+      return;
+    }
     setExporting(true);
     setExportMenuOpen(false);
     setSuccessMessage('');
     try {
       const blob = format === 'pdf'
-        ? await exportExpenseReport(category)
-        : await exportExpenses(category);
+        ? await exportExpenseReport(category, { from: fromDate, to: toDate })
+        : await exportExpenses(category, { from: fromDate, to: toDate });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -88,8 +94,9 @@ export default function ExpensesPage() {
   const filteredExpenses = useMemo(() => {
     return [...expenses]
       .filter((expense) => category === 'all' || expense.category === category)
+      .filter((expense) => (!fromDate || expense.date >= fromDate) && (!toDate || expense.date <= toDate))
       .sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [expenses, category]);
+  }, [expenses, category, fromDate, toDate]);
 
   const total = filteredExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
 
@@ -132,6 +139,8 @@ export default function ExpensesPage() {
           <option value="all">All categories</option>
           {categories.map((item) => <option key={item.id} value={item.name}>{item.icon ? `${item.icon} ` : ''}{item.name}</option>)}
         </select>
+        <label className="date-filter">From <input type="date" value={fromDate} max={toDate || undefined} onChange={(event) => setFromDate(event.target.value)} /></label>
+        <label className="date-filter">To <input type="date" value={toDate} min={fromDate || undefined} onChange={(event) => setToDate(event.target.value)} /></label>
         <div className="export-menu">
           <button className="button secondary export-button" onClick={() => setExportMenuOpen((open) => !open)} disabled={exporting}>
             {exporting ? 'Exporting...' : 'Export'}

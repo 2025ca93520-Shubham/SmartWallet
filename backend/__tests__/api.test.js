@@ -212,6 +212,25 @@ describe('Backend API Tests', () => {
       expect(res.text).not.toContain('Utilities');
     });
 
+    it('should export only expenses inside the selected date range', async () => {
+      const res = await request(app)
+        .get('/api/expenses/export')
+        .query({ from: '2025-05-01', to: '2025-05-31' });
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain('Updated grocery run');
+      expect(res.text).not.toContain('Electric bill');
+    });
+
+    it('should reject invalid export date ranges', async () => {
+      const res = await request(app)
+        .get('/api/expenses/export')
+        .query({ from: '2025-06-01', to: '2025-05-31' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('on or before');
+    });
+
     it('should export an expense summary as PDF', async () => {
       const res = await request(app)
         .get('/api/expenses/report')
@@ -220,6 +239,15 @@ describe('Backend API Tests', () => {
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toMatch(/application\/pdf/);
       expect(res.headers['content-disposition']).toContain('expense-report.pdf');
+      expect(res.body.subarray(0, 5).toString()).toBe('%PDF-');
+    });
+
+    it('should export a PDF for the selected date range', async () => {
+      const res = await request(app)
+        .get('/api/expenses/report')
+        .query({ from: '2025-05-01', to: '2025-05-31' });
+
+      expect(res.status).toBe(200);
       expect(res.body.subarray(0, 5).toString()).toBe('%PDF-');
     });
 
