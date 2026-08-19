@@ -2,12 +2,6 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
-const buildExportParams = (category, dateRange) => ({
-  category,
-  ...(dateRange.from ? { from: dateRange.from } : {}),
-  ...(dateRange.to ? { to: dateRange.to } : {}),
-});
-
 export function normalizeExpenses(payload) {
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload?.data)) return payload.data;
@@ -20,17 +14,22 @@ export async function fetchExpenses() {
   return normalizeExpenses(response.data);
 }
 
+export async function createExpense(expense) {
+  const response = await axios.post(`${API_BASE_URL}/api/expenses`, expense);
+  return response.data?.data ?? response.data;
+}
+
 export async function exportExpenses(category = 'all', dateRange = {}) {
   const response = await axios.get(`${API_BASE_URL}/api/expenses/export`, {
-    params: buildExportParams(category, dateRange),
+    params: { category },
     responseType: 'blob',
   });
   return response.data;
 }
 
-export async function exportExpenseReport(category = 'all', dateRange = {}) {
+export async function exportExpenseReport(category = 'all') {
   const response = await axios.get(`${API_BASE_URL}/api/expenses/report`, {
-    params: buildExportParams(category, dateRange),
+    params: { category },
     responseType: 'blob',
   });
   return response.data;

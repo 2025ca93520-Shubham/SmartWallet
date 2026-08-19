@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchCategories } from '../services/categoryService';
-import { exportExpenseReport, exportExpenses, fetchExpenses } from '../services/expenseService';
+import {
+  createExpense,
+  exportExpenseReport,
+  exportExpenses,
+  fetchExpenses,
+} from '../services/expenseService';
+import ExpenseForm from '../components/ExpenseForm';
 import './pages.css';
 
 const money = (amount) =>
@@ -23,6 +29,8 @@ export default function ExpensesPage() {
   const [exporting, setExporting] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [savingExpense, setSavingExpense] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -47,6 +55,7 @@ export default function ExpensesPage() {
     }
     setExporting(true);
     setExportMenuOpen(false);
+    setSuccessMessage('');
     try {
       const blob = format === 'pdf'
         ? await exportExpenseReport(category, { from: fromDate, to: toDate })
@@ -61,6 +70,24 @@ export default function ExpensesPage() {
       setError(err?.response?.data?.message || 'Unable to export expenses right now.');
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleAddExpense = async (payload) => {
+    setSavingExpense(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      const createdExpense = await createExpense(payload);
+      setExpenses((current) => [createdExpense, ...current]);
+      setSuccessMessage(`Expense "${createdExpense.expenseName || createdExpense.description}" added successfully.`);
+    } catch (err) {
+      const message = err?.response?.data?.message || 'Unable to add expense right now.';
+      setError(message);
+      throw err;
+    } finally {
+      setSavingExpense(false);
     }
   };
 
@@ -82,6 +109,24 @@ export default function ExpensesPage() {
         </div>
         <button className="button secondary" onClick={load} disabled={loading}>↻ Refresh</button>
       </div>
+
+      <div className="card" style={{ padding: '20px', marginBottom: '18px' }}>
+        <ExpenseForm categories={categories} onSubmit={handleAddExpense} isSubmitting={savingExpense} />
+      </div>
+
+      {successMessage && (
+        <div
+          className="alert"
+          style={{
+            background: '#dcfce7',
+            border: '1px solid #bbf7d0',
+            color: '#166534',
+          }}
+          role="status"
+        >
+          {successMessage}
+        </div>
+      )}
 
       {error && <div className="alert error" role="alert">{error}<button onClick={load}>Retry</button></div>}
 
@@ -131,16 +176,15 @@ export default function ExpensesPage() {
           <div className="table-scroll">
             <table>
               <thead>
-                <tr><th>Expense</th><th>Category</th><th>Date</th><th>Payment</th><th>Recurring</th><th className="amount">Amount</th></tr>
+                <tr><th>Expense</th><th>Category</th><th>Date</th><th>Payment</th><th className="amount">Amount</th></tr>
               </thead>
               <tbody>
                 {filteredExpenses.map((expense) => (
                   <tr key={expense.id}>
-                    <td><strong>{expense.description}</strong>{expense.notes && <small>{expense.notes}</small>}</td>
+                    <td><strong>{expense.expenseName || expense.description}</strong></td>
                     <td><span className="pill">{expense.category}</span></td>
                     <td>{formatDate(expense.date)}</td>
                     <td>{expense.paymentMethod || '—'}</td>
-                    <td>{expense.isRecurring ? 'Yes' : 'No'}</td>
                     <td className="amount"><strong>{money(expense.amount)}</strong></td>
                   </tr>
                 ))}

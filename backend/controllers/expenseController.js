@@ -172,30 +172,30 @@ export const getExpenseById = (req, res, next) => {
   }
 };
 
-export const createExpense = (req, res, next) => {
+export const createExpense = async (req, res, next) => {
   try {
     const expense = expenseService.create(req.body);
-    dataStore.save();
+    await dataStore.save();
     successResponse(res, expense, 201);
   } catch (error) {
     next(error);
   }
 };
 
-export const updateExpense = (req, res, next) => {
+export const updateExpense = async (req, res, next) => {
   try {
     const expense = expenseService.update(req.params.id, req.body);
-    dataStore.save();
+    await dataStore.save();
     successResponse(res, expense);
   } catch (error) {
     next(error);
   }
 };
 
-export const deleteExpense = (req, res, next) => {
+export const deleteExpense = async (req, res, next) => {
   try {
     const expense = expenseService.delete(req.params.id);
-    dataStore.save();
+    await dataStore.save();
     successResponse(res, expense);
   } catch (error) {
     next(error);
