@@ -3,31 +3,30 @@ import { dataStore } from './dataStore.js';
 
 export class SavingsGoalService {
   getAll() {
-    return dataStore.data.savingsGoals.map((goal) => SavingsGoal.withProgress(goal));
+    return dataStore.data.savingsGoals;
   }
 
   getById(id) {
-    const goal = dataStore.data.savingsGoals.find((g) => g.id === id);
-    return goal ? SavingsGoal.withProgress(goal) : undefined;
+    return dataStore.data.savingsGoals.find((g) => g.id === id);
   }
 
   addFunds(id, data) {
-    const rawGoal = dataStore.data.savingsGoals.find((g) => g.id === id);
-    if (!rawGoal) {
+    const goal = this.getById(id);
+    if (!goal) {
       const error = new Error('Savings goal not found');
       error.statusCode = 404;
       throw error;
     }
 
-    const errors = SavingsGoal.validateFunds(data, rawGoal);
+    const errors = SavingsGoal.validateFunds(data, goal);
     if (errors.length > 0) {
       const error = new Error(errors.join(', '));
       error.statusCode = 400;
       throw error;
     }
 
-    rawGoal.currentAmount += Number(data.amount);
-    return SavingsGoal.withProgress(rawGoal);
+    goal.currentAmount += Number(data.amount);
+    return goal;
   }
 }
 
