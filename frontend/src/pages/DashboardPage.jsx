@@ -13,8 +13,16 @@ export default function DashboardPage() {
   const load = useCallback(async () => {
     setLoading(true); setError('');
     try {
-      const [summaryData, trendData] = await Promise.all([fetchDashboardSummary(), fetchMonthlyTrends()]);
-      setSummary(summaryData); setTrends(Array.isArray(trendData) ? trendData : []);
+      const summaryData = await fetchDashboardSummary();
+      setSummary(summaryData);
+
+      try {
+        const trendData = await fetchMonthlyTrends();
+        setTrends(Array.isArray(trendData) ? trendData : []);
+      } catch (trendError) {
+        setTrends([]);
+        setError(trendError?.response?.data?.message || 'Monthly trends are temporarily unavailable.');
+      }
     } catch (err) {
       setError(err?.response?.data?.message || 'Unable to load dashboard.');
     } finally { setLoading(false); }
