@@ -33,3 +33,8 @@ export async function updateBudget(id, budget) {
   const response = await axios.put(`${API_BASE_URL}/api/budgets/${id}`, budget);
   return response.data?.data ?? response.data;
 }
+
+export async function deleteBudget(id) {
+  const response = await axios.delete(`${API_BASE_URL}/api/budgets/${id}`);
+  return response.data?.data ?? response.data;
+}
