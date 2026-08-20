@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchCategories } from '../services/categoryService';
-import { fetchExpenses } from '../services/expenseService';
+import {
+  createExpense,
+  exportExpenseReport,
+  exportExpenses,
+  fetchExpenses,
+} from '../services/expenseService';
+import ExpenseForm from '../components/ExpenseForm';
 import './pages.css';
 
 const money = (amount) =>
@@ -17,8 +23,14 @@ export default function ExpensesPage() {
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [savingExpense, setSavingExpense] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -36,11 +48,55 @@ export default function ExpensesPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  const handleExport = async (format) => {
+    if (fromDate && toDate && fromDate > toDate) {
+      setError('From date must be on or before the to date.');
+      return;
+    }
+    setExporting(true);
+    setExportMenuOpen(false);
+    setSuccessMessage('');
+    try {
+      const blob = format === 'pdf'
+        ? await exportExpenseReport(category, { from: fromDate, to: toDate })
+        : await exportExpenses(category, { from: fromDate, to: toDate });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = format === 'pdf' ? 'expense-report.pdf' : 'expenses.csv';
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Unable to export expenses right now.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleAddExpense = async (payload) => {
+    setSavingExpense(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      const createdExpense = await createExpense(payload);
+      setExpenses((current) => [createdExpense, ...current]);
+      setSuccessMessage(`Expense "${createdExpense.expenseName || createdExpense.description}" added successfully.`);
+    } catch (err) {
+      const message = err?.response?.data?.message || 'Unable to add expense right now.';
+      setError(message);
+      throw err;
+    } finally {
+      setSavingExpense(false);
+    }
+  };
+
   const filteredExpenses = useMemo(() => {
     return [...expenses]
       .filter((expense) => category === 'all' || expense.category === category)
+      .filter((expense) => (!fromDate || expense.date >= fromDate) && (!toDate || expense.date <= toDate))
       .sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [expenses, category]);
+  }, [expenses, category, fromDate, toDate]);
 
   const total = filteredExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
 
@@ -54,6 +110,24 @@ export default function ExpensesPage() {
         <button className="button secondary" onClick={load} disabled={loading}>↻ Refresh</button>
       </div>
 
+      <div className="card" style={{ padding: '20px', marginBottom: '18px' }}>
+        <ExpenseForm categories={categories} onSubmit={handleAddExpense} isSubmitting={savingExpense} />
+      </div>
+
+      {successMessage && (
+        <div
+          className="alert"
+          style={{
+            background: '#dcfce7',
+            border: '1px solid #bbf7d0',
+            color: '#166534',
+          }}
+          role="status"
+        >
+          {successMessage}
+        </div>
+      )}
+
       {error && <div className="alert error" role="alert">{error}<button onClick={load}>Retry</button></div>}
 
       <div className="toolbar card">
@@ -65,6 +139,28 @@ export default function ExpensesPage() {
           <option value="all">All categories</option>
           {categories.map((item) => <option key={item.id} value={item.name}>{item.icon ? `${item.icon} ` : ''}{item.name}</option>)}
         </select>
+        <label className="date-filter">From <input type="date" value={fromDate} max={toDate || undefined} onChange={(event) => setFromDate(event.target.value)} /></label>
+        <label className="date-filter">To <input type="date" value={toDate} min={fromDate || undefined} onChange={(event) => setToDate(event.target.value)} /></label>
+        <div className="export-menu">
+          <button className="button secondary export-button" onClick={() => setExportMenuOpen((open) => !open)} disabled={exporting}>
+            {exporting ? 'Exporting...' : 'Export'}
+          </button>
+          <button
+            className="button secondary export-toggle"
+            onClick={() => setExportMenuOpen((open) => !open)}
+            aria-label="Choose export format"
+            aria-expanded={exportMenuOpen}
+            disabled={exporting}
+          >
+            ▾
+          </button>
+          {exportMenuOpen && (
+            <div className="export-options" role="menu">
+              <button onClick={() => handleExport('pdf')} role="menuitem">Export as PDF</button>
+              <button onClick={() => handleExport('csv')} role="menuitem">Export as CSV</button>
+            </div>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -80,16 +176,15 @@ export default function ExpensesPage() {
           <div className="table-scroll">
             <table>
               <thead>
-                <tr><th>Expense</th><th>Category</th><th>Date</th><th>Payment</th><th>Recurring</th><th className="amount">Amount</th></tr>
+                <tr><th>Expense</th><th>Category</th><th>Date</th><th>Payment</th><th className="amount">Amount</th></tr>
               </thead>
               <tbody>
                 {filteredExpenses.map((expense) => (
                   <tr key={expense.id}>
-                    <td><strong>{expense.description}</strong>{expense.notes && <small>{expense.notes}</small>}</td>
+                    <td><strong>{expense.expenseName || expense.description}</strong></td>
                     <td><span className="pill">{expense.category}</span></td>
                     <td>{formatDate(expense.date)}</td>
                     <td>{expense.paymentMethod || '—'}</td>
-                    <td>{expense.isRecurring ? 'Yes' : 'No'}</td>
                     <td className="amount"><strong>{money(expense.amount)}</strong></td>
                   </tr>
                 ))}

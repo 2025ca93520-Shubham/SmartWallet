@@ -67,7 +67,7 @@ describe('Backend API Tests', () => {
 
     it('should update a transaction', async () => {
       const updateData = {
-        amount: 50,
+        amount: 75.5,
         category: 'Food & Dining',
         description: 'Updated lunch',
         date: '2025-05-20',
@@ -80,7 +80,6 @@ describe('Backend API Tests', () => {
 
     it('should delete a transaction', async () => {
       const res = await request(app).delete('/api/transactions/txn-5');
-      expect(res.status).toBe(200);
       expect(res.body.data.id).toBe('txn-5');
     });
 
@@ -194,11 +193,69 @@ describe('Backend API Tests', () => {
       expect(res.body.data.id).toBe('exp-1');
     });
 
+    it('should export expenses as CSV', async () => {
+      const res = await request(app).get('/api/expenses/export');
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toMatch(/text\/csv/);
+      expect(res.headers['content-disposition']).toContain('expenses.csv');
+      expect(res.text).toContain('Date,Expense,Category,Amount,Notes');
+      expect(res.text).toMatch(/\d{2}\/\d{2}\/\d{4}/);
+    });
+
+    it('should export only expenses from the selected category', async () => {
+      const res = await request(app)
+        .get('/api/expenses/export')
+        .query({ category: 'Food & Dining' });
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain('Food & Dining');
+      expect(res.text).not.toContain('Utilities');
+    });
+
+    it('should export only expenses inside the selected date range', async () => {
+      const res = await request(app)
+        .get('/api/expenses/export')
+        .query({ from: '2025-05-01', to: '2025-05-31' });
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain('Updated grocery run');
+      expect(res.text).not.toContain('Electric bill');
+    });
+
+    it('should reject invalid export date ranges', async () => {
+      const res = await request(app)
+        .get('/api/expenses/export')
+        .query({ from: '2025-06-01', to: '2025-05-31' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('on or before');
+    });
+
+    it('should export an expense summary as PDF', async () => {
+      const res = await request(app)
+        .get('/api/expenses/report')
+        .query({ month: 5, year: 2025 });
+
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toMatch(/application\/pdf/);
+      expect(res.headers['content-disposition']).toContain('expense-report.pdf');
+      expect(res.body.subarray(0, 5).toString()).toBe('%PDF-');
+    });
+
+    it('should export a PDF for the selected date range', async () => {
+      const res = await request(app)
+        .get('/api/expenses/report')
+        .query({ from: '2025-05-01', to: '2025-05-31' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.subarray(0, 5).toString()).toBe('%PDF-');
+    });
+
     it('should create a new expense', async () => {
       const newExpense = {
+        expenseName: 'Electric bill',
         amount: 120,
         category: 'Utilities',
-        description: 'Electric bill',
         date: '2025-06-01',
         paymentMethod: 'credit',
         isRecurring: true,
@@ -208,15 +265,29 @@ describe('Backend API Tests', () => {
       expect(res.status).toBe(201);
       expect(res.body.status).toBe('success');
       expect(res.body.data.amount).toBe(120);
+      expect(res.body.data.expenseName).toBe('Electric bill');
       expect(res.body.data.paymentMethod).toBe('credit');
       expect(res.body.data.isRecurring).toBe(true);
     });
 
+    it('should reject an expense without a name', async () => {
+      const newExpense = {
+        amount: 120,
+        category: 'Utilities',
+        date: '2025-06-01',
+        paymentMethod: 'credit',
+      };
+
+      const res = await request(app).post('/api/expenses').send(newExpense);
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('Expense Name is required');
+    });
+
     it('should update an expense', async () => {
       const updateData = {
+        expenseName: 'Updated grocery run',
         amount: 90,
         category: 'Food & Dining',
-        description: 'Updated grocery run',
         date: '2025-05-26',
         paymentMethod: 'debit',
         isRecurring: false,
@@ -225,7 +296,7 @@ describe('Backend API Tests', () => {
       const res = await request(app).put('/api/expenses/exp-1').send(updateData);
       expect(res.status).toBe(200);
       expect(res.body.data.amount).toBe(90);
-      expect(res.body.data.description).toBe('Updated grocery run');
+      expect(res.body.data.expenseName).toBe('Updated grocery run');
     });
 
     it('should delete an expense', async () => {

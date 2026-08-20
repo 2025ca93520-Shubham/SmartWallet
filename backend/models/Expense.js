@@ -1,21 +1,49 @@
 export class Expense {
-  constructor(id, amount, category, description, date, paymentMethod, isRecurring, notes) {
+  constructor(
+    id,
+    expenseName,
+    amount,
+    category,
+    date,
+    paymentMethod,
+    createdAt = new Date().toISOString(),
+    updatedAt = createdAt
+  ) {
     this.id = id;
+    this.expenseName = expenseName;
+    this.description = expenseName;
     this.amount = amount;
     this.category = category;
-    this.description = description;
     this.date = date;
     this.paymentMethod = paymentMethod;
-    this.isRecurring = isRecurring;
-    this.notes = notes;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+  }
+
+  static resolveExpenseName(data) {
+    return (data.expenseName || data.description || '').toString().trim();
+  }
+
+  static isValidDate(value) {
+    if (!value) {
+      return false;
+    }
+
+    const date = new Date(value);
+    return !Number.isNaN(date.getTime());
   }
 
   static validate(data) {
     const errors = [];
-    if (!data.amount || data.amount <= 0) errors.push('Amount must be positive');
+    const expenseName = Expense.resolveExpenseName(data);
+
+    if (!expenseName) errors.push('Expense Name is required');
+    if (data.amount === undefined || data.amount === null || Number(data.amount) <= 0) {
+      errors.push('Amount must be positive');
+    }
     if (!data.category) errors.push('Category is required');
-    if (!data.description) errors.push('Description is required');
-    if (!data.date) errors.push('Date is required');
+    if (!Expense.isValidDate(data.date)) errors.push('Date must be valid');
+    if (!data.paymentMethod) errors.push('Payment Method is required');
     return errors;
   }
 }
