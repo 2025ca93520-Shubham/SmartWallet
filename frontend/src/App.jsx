@@ -123,31 +123,16 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="app">
       <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-mark">₹</div>
-          <div>
-            <strong>SmartWallet</strong>
-            <span>Expense Tracker</span>
-          </div>
-        </div>
+        <div className="brand"><div className="brand-mark">₹</div><div><strong>SmartWallet</strong></div></div>
+        <nav>
+          {[['overview','Overview','chart'],['expenses','Expenses','wallet'],['budgets','Budgets','budget'],['savings','Savings goals','budget']].map(([id,label,icon]) =>
+            <button key={id} className={section === id ? 'nav active' : 'nav'} onClick={() => setSection(id)}><Icon name={icon}/>{label}</button>
+          )}
+        </nav>      </aside>
 
-        <nav className="sidebar-nav">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              <span>{item.icon}</span>
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-      </aside>
-
-      <div className="main-shell">
+      <main className="main">
         <header className="topbar">
           <div><span className="eyebrow">SmartWallet</span><h1>{section === 'overview' ? 'Financial overview' : section === 'expenses' ? 'Expenses' : section === 'budgets' ? 'Budgets' : 'Savings goals'}</h1></div>
           <div className="actions">
@@ -204,6 +189,58 @@ export default function App() {
   );
 }
 
-export default function App() {
-  return <Layout />;
+function Stat({label,value,hint}) { return <div className="stat"><span>{label}</span><strong>{value}</strong><small>{hint}</small></div> }
+
+function Overview({expenses,budgets,savingsGoals,onExpense}) {
+  const recent=[...expenses].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  const monthlyTotals = useMemo(() => {
+    const totals = new Map();
+    expenses.forEach((expense) => {
+      const key = String(expense.date || '').slice(0, 7);
+      if (!/^\d{4}-\d{2}$/.test(key)) return;
+      totals.set(key, (totals.get(key) || 0) + Number(expense.amount || 0));
+    });
+
+    // Show the latest 12 months, including months with zero spending.
+    const months = [];
+    const now = new Date();
+    for (let i = 11; i >= 0; i -= 1) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      months.push({
+        key,
+        label: date.toLocaleDateString('en-IN', { month: 'short' }),
+        amount: totals.get(key) || 0,
+      });
+    }
+    return months;
+  }, [expenses]);
+  const monthlyMax = Math.max(...monthlyTotals.map(month => month.amount), 1);
+
+  return <div className="overview">
+    <div className="panel"><div className="panel-head"><div><h2>Recent spending</h2><span>Latest transactions</span></div><button className="link" onClick={onExpense}>+ Add transaction</button></div>
+      {recent.length ? <div className="recent">{recent.map(e=><div className="recent-row" key={e.id}><div className="dot">{e.category?.slice(0,1)}</div><div><strong>{e.description}</strong><small>{e.category} · {e.date}</small></div><b>{money(e.amount)}</b></div>)}</div> : <Empty text="No expenses yet. Add your first expense."/>}
+    </div>
+    <div className="panel monthly-chart-panel"><div className="panel-head"><div><h2>Monthly expenses</h2><span>How much you spent in each of the last 12 months</span></div><strong className="chart-total">{money(monthlyTotals.reduce((sum, month) => sum + month.amount, 0))}</strong></div>
+      <div className="monthly-chart" role="img" aria-label="Monthly expenses chart">
+        {monthlyTotals.map(month => <div className="month-column" key={month.key} title={`${month.label}: ${money(month.amount)}`}>
+          <span className="month-value">{month.amount ? money(month.amount) : '₹0'}</span>
+          <div className="month-track"><i style={{height:`${month.amount ? Math.max(5, month.amount / monthlyMax * 100) : 3}%`}}/></div>
+          <span className="month-label">{month.label}</span>
+        </div>)}
+      </div>
+    </div>
+    <div className="panel"><div className="panel-head"><div><h2>Budget snapshot</h2><span>Configured limits</span></div></div>{budgets.length?budgets.map(b=><div className="mini-row" key={b.id}><span>{b.category}</span><b>{money(b.limit)}</b></div>):<Empty text="Create a budget to start planning."/>}</div>
+    <div className="panel"><div className="panel-head"><div><h2>Savings progress</h2><span>Your goals</span></div></div>{savingsGoals.length?savingsGoals.map(g=>{const p=g.targetAmount?Math.min(100,Math.round(g.currentAmount/g.targetAmount*100)):0;return <div className="goal-mini" key={g.id}><div><strong>{g.name}</strong><span>{money(g.currentAmount)} / {money(g.targetAmount)}</span></div><div className="progress"><i style={{width:`${p}%`}}/></div></div>}):<Empty text="No savings goals found."/>}</div>
+  </div>
 }
+function Expenses({expenses,onAdd,onDelete}) {
+  return <section className="panel"><div className="panel-head"><div><h2>All expenses</h2></div><button className="button primary" onClick={onAdd}><Icon name="plus"/> Add expense</button></div>
+    {expenses.length?<div className="table-wrap"><table><thead><tr><th>Description</th><th>Category</th><th>Date</th><th>Payment</th><th>Amount</th><th/></tr></thead><tbody>{[...expenses].sort((a,b)=>new Date(b.date)-new Date(a.date)).map(e=><tr key={e.id}><td><strong>{e.description}</strong>{e.notes&&<small>{e.notes}</small>}</td><td>{e.category}</td><td>{e.date}</td><td>{e.paymentMethod}</td><td className="amount">{money(e.amount)}</td><td><button className="icon-danger" title="Delete" onClick={()=>onDelete(e.id)}><Icon name="trash"/></button></td></tr>)}</tbody></table></div>:<Empty text="No expenses yet."/>}
+  </section>
+}
+function Budgets({categories,budgets,editingBudget,setEditingBudget,onSave,onDelete,error}) {
+  return <div className="budget-layout"><div className="panel"><div className="panel-head"><div><h2>{editingBudget?'Edit budget':'Set a budget'}</h2></div></div>{error&&<div className="alert">{error}</div>}<BudgetForm categories={categories} budget={editingBudget} onSubmit={onSave} onCancel={()=>setEditingBudget(null)}/></div>
+  <div className="panel"><div className="panel-head"><div><h2>Existing budgets</h2><span>{budgets.length} configured</span></div></div>{budgets.length?budgets.map(b=><div className="budget-row" key={b.id}><div><strong>{b.category}</strong><small>{b.month}/{b.year} · {money(b.limit)}</small></div><div className="row-actions"><button className="link" onClick={()=>setEditingBudget(b)}>Edit</button><button className="icon-danger" onClick={()=>onDelete(b.id)}><Icon name="trash"/></button></div></div>):<Empty text="No budgets yet."/>}</div></div>
+}
+function Empty({text}) { return <div className="empty">{text}</div> }
