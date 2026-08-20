@@ -36,6 +36,7 @@ export default function App() {
   const [expenseError, setExpenseError] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState(null);
   const [error, setError] = useState('');
   const [editingBudget, setEditingBudget] = useState(null);
   const [budgetError, setBudgetError] = useState('');
@@ -44,11 +45,36 @@ export default function App() {
     quiet ? setRefreshing(true) : setLoading(true);
     setError('');
     try {
-      const [c, b, s, e] = await Promise.all([fetchCategories(), fetchBudgets(), fetchSavingsGoals(), fetchExpenses()]);
-      setCategories(c); setBudgets(b); setSavingsGoals(s); setExpenses(e);
-      setExpenseForm((current) => ({ ...current, category: current.category || c[0]?.name || '' }));
+      const results = await Promise.allSettled([
+        fetchCategories(),
+        fetchBudgets(),
+        fetchSavingsGoals(),
+        fetchExpenses(),
+      ]);
+      const [categoriesResult, budgetsResult, savingsGoalsResult, expensesResult] = results;
+      const failures = results.filter((result) => result.status === 'rejected');
+
+      if (categoriesResult.status === 'fulfilled') {
+        setCategories(categoriesResult.value);
+        setExpenseForm((current) => ({
+          ...current,
+          category: current.category || categoriesResult.value[0]?.name || '',
+        }));
+      }
+      if (budgetsResult.status === 'fulfilled') setBudgets(budgetsResult.value);
+      if (savingsGoalsResult.status === 'fulfilled') setSavingsGoals(savingsGoalsResult.value);
+      if (expensesResult.status === 'fulfilled') setExpenses(expensesResult.value);
+
+      if (failures.length === results.length) {
+        const firstError = failures[0].reason;
+        throw firstError;
+      }
+      setLastRefreshed(new Date());
+      if (failures.length > 0) {
+        setError('Some SmartWallet data could not be refreshed. Please try again.');
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Unable to load SmartWallet data.');
+      setError(err?.response?.data?.message || 'Unable to load SmartWallet data.');
     } finally {
       setLoading(false); setRefreshing(false);
     }
@@ -112,8 +138,18 @@ export default function App() {
       <main className="main">
         <header className="topbar">
           <div><span className="eyebrow">SmartWallet</span><h1>{section === 'overview' ? 'Financial overview' : section === 'expenses' ? 'Expenses' : section === 'budgets' ? 'Budgets' : 'Savings goals'}</h1></div>
-          <div className="actions"><button className="button secondary" onClick={() => load(true)} disabled={refreshing}><Icon name="refresh"/> Refresh</button><button className="button primary" onClick={() => {setShowExpenseForm(true);setSection('expenses')}}><Icon name="plus"/> Add expense</button></div>
+          <div className="actions">
+            <button className="button secondary" onClick={() => load(true)} disabled={refreshing} aria-busy={refreshing}>
+              {refreshing ? <span className="button-spinner" aria-hidden="true" /> : <Icon name="refresh" />}
+              {refreshing ? 'Refreshing...' : 'Refresh'}
+            </button>
+            <button className="button primary" onClick={() => {setShowExpenseForm(true);setSection('expenses')}}><Icon name="plus"/> Add expense</button>
+          </div>
         </header>
+
+        <div className="refresh-status" role="status" aria-live="polite">
+          {refreshing ? 'Updating your wallet data...' : lastRefreshed ? `Last refreshed at ${lastRefreshed.toLocaleTimeString()}` : ''}
+        </div>
 
         {error && <div className="alert">{error}<button onClick={() => setError('')}>Dismiss</button></div>}
 
