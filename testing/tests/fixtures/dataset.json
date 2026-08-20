@@ -1,0 +1,102 @@
+{
+  "transactions": [
+    {
+      "id": "txn-1",
+      "amount": 50,
+      "category": "Food & Dining",
+      "description": "Lunch",
+      "date": "2025-05-20",
+      "type": "expense"
+    },
+    {
+      "id": "txn-2",
+      "amount": 2500,
+      "category": "Salary",
+      "description": "Monthly salary",
+      "date": "2025-05-01",
+      "type": "income"
+    }
+  ],
+  "budgets": [
+    {
+      "id": "bud-1",
+      "category": "Food & Dining",
+      "limit": 550,
+      "month": 5,
+      "year": 2025
+    },
+    {
+      "id": "bud-2",
+      "category": "Entertainment",
+      "limit": 200,
+      "month": 5,
+      "year": 2025
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat-1",
+      "name": "Food & Dining",
+      "icon": "🍽️",
+      "color": "#f97316"
+    },
+    {
+      "id": "cat-2",
+      "name": "Transportation",
+      "icon": "🚗",
+      "color": "#06b6d4"
+    },
+    {
+      "id": "cat-3",
+      "name": "Entertainment",
+      "icon": "🎬",
+      "color": "#a855f7"
+    },
+    {
+      "id": "cat-4",
+      "name": "Shopping",
+      "icon": "🛍️",
+      "color": "#ec4899"
+    },
+    {
+      "id": "cat-5",
+      "name": "Utilities",
+      "icon": "💡",
+      "color": "#eab308"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "exp-1",
+      "expenseName": "Electric bill",
+      "amount": 120,
+      "category": "Utilities",
+      "date": "2025-06-01",
+      "paymentMethod": "Credit Card"
+    },
+    {
+      "id": "exp-2",
+      "expenseName": "Groceries",
+      "amount": 75,
+      "category": "Food & Dining",
+      "date": "2025-05-24",
+      "paymentMethod": "Debit Card"
+    }
+  ],
+  "savingsGoals": [
+    {
+      "id": "goal-1",
+      "name": "Emergency Fund",
+      "targetAmount": 5000,
+      "targetDate": "2026-12-31",
+      "currentAmount": 1500
+    },
+    {
+      "id": "goal-2",
+      "name": "Vacation",
+      "targetAmount": 2500,
+      "targetDate": "2026-10-31",
+      "currentAmount": 600
+    }
+  ]
+}
