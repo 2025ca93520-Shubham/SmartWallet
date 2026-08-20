@@ -1,5 +1,15 @@
 [
   {
+    "id": "exp-1",
+    "amount": 120,
+    "category": "Utilities",
+    "description": "Electric bill",
+    "date": "2025-06-01",
+    "paymentMethod": "credit",
+    "isRecurring": true,
+    "notes": "Monthly"
+  },
+  {
     "id": "exp-2",
     "amount": 75,
     "category": "Food & Dining",
@@ -8,15 +18,5 @@
     "paymentMethod": "debit",
     "isRecurring": false,
     "notes": "Weekly"
-  },
-  {
-    "id": "cd3ddb87-ddfb-411c-8e9b-056b339db330",
-    "amount": 154,
-    "category": "Entertainment",
-    "description": "Movie",
-    "date": "2026-08-19",
-    "paymentMethod": "debit",
-    "isRecurring": false,
-    "notes": ""
   }
 ]
