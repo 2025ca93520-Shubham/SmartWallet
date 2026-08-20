@@ -1,5 +1,7 @@
 import 'dotenv/config.js';
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -9,6 +11,8 @@ import routes from './routes/index.js';
 import { dataStore } from './services/dataStore.js';
 
 const app = express();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const frontendDist = path.join(__dirname, '../frontend/dist');
 
 app.use(cors(serverConfig.cors));
 app.use(bodyParser.json());
@@ -24,6 +28,14 @@ app.get('/health', (req, res) => {
 });
 
 app.use(`${apiConfig.prefix}`, routes);
+
+app.use(express.static(frontendDist));
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith(apiConfig.prefix)) {
+    return next();
+  }
+  return res.sendFile(path.join(frontendDist, 'index.html'));
+});
 
 app.use(errorHandler);
 
