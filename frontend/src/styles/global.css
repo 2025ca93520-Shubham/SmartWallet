@@ -189,6 +189,13 @@ button {
   display: flex;
   gap: 9px;
 }
+.refresh-status {
+  min-height: 18px;
+  margin: -14px 0 14px;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: right;
+}
 .button {
   display: inline-flex;
   align-items: center;
@@ -214,6 +221,14 @@ button {
   border: 1px solid var(--line);
   background: #fff;
   color: #55647a;
+}
+.button-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #cbd5e1;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 .alert {
   display: flex;
