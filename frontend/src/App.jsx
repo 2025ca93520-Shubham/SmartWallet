@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import CategoryDropdown from './components/CategoryDropdown';
 import BudgetForm from './components/BudgetForm';
 import SavingsGoalCard from './components/SavingsGoalCard';
-import { fetchCategories } from './services/categoryService';
+import { fetchCategories, createCategory } from './services/categoryService';
 import { fetchBudgets, createBudget, updateBudget, deleteBudget } from './services/budgetService';
 import { fetchSavingsGoals } from './services/savingsGoalService';
 import { fetchExpenses, createExpense, deleteExpense } from './services/expenseService';
@@ -24,6 +24,7 @@ function Icon({ name }) {
 }
 
 const emptyExpense = { amount: '', category: '', description: '', date: today(), paymentMethod: 'debit', isRecurring: false, notes: '' };
+const emptyCategory = { name: '', icon: '💰', color: '#6366f1' };
 
 export default function App() {
   const [categories, setCategories] = useState([]);
@@ -40,6 +41,9 @@ export default function App() {
   const [error, setError] = useState('');
   const [editingBudget, setEditingBudget] = useState(null);
   const [budgetError, setBudgetError] = useState('');
+  const [categoryForm, setCategoryForm] = useState(emptyCategory);
+  const [categoryError, setCategoryError] = useState('');
+  const [savingCategory, setSavingCategory] = useState(false);
 
   const load = useCallback(async (quiet = false) => {
     quiet ? setRefreshing(true) : setLoading(true);
@@ -118,6 +122,27 @@ export default function App() {
     catch (err) { setBudgetError(err.response?.data?.message || 'Unable to delete budget.'); }
   }
 
+  async function addCategory(event) {
+    event.preventDefault();
+    setCategoryError('');
+    if (!categoryForm.name.trim()) {
+      setCategoryError('Category name is required.');
+      return;
+    }
+
+    setSavingCategory(true);
+    try {
+      const created = await createCategory({ ...categoryForm, name: categoryForm.name.trim() });
+      setCategories((current) => [...current, created]);
+      setCategoryForm(emptyCategory);
+      setSection('categories');
+    } catch (err) {
+      setCategoryError(err?.response?.data?.message || 'Unable to create category.');
+    } finally {
+      setSavingCategory(false);
+    }
+  }
+
   function updateGoal(updated) {
     setSavingsGoals(current => current.map(g => g.id === updated.id ? updated : g));
   }
@@ -127,14 +152,14 @@ export default function App() {
       <aside className="sidebar">
         <div className="brand"><div className="brand-mark">₹</div><div><strong>SmartWallet</strong></div></div>
         <nav>
-          {[['overview','Overview','chart'],['expenses','Expenses','wallet'],['budgets','Budgets','budget'],['savings','Savings goals','budget']].map(([id,label,icon]) =>
+          {[['overview','Overview','chart'],['expenses','Expenses','wallet'],['categories','Categories','budget'],['budgets','Budgets','budget'],['savings','Savings goals','budget']].map(([id,label,icon]) =>
             <button key={id} className={section === id ? 'nav active' : 'nav'} onClick={() => setSection(id)}><Icon name={icon}/>{label}</button>
           )}
         </nav>      </aside>
 
       <main className="main">
         <header className="topbar">
-          <div><span className="eyebrow">SmartWallet</span><h1>{section === 'overview' ? 'Financial overview' : section === 'expenses' ? 'Expenses' : section === 'budgets' ? 'Budgets' : 'Savings goals'}</h1></div>
+          <div><span className="eyebrow">SmartWallet</span><h1>{section === 'overview' ? 'Financial overview' : section === 'expenses' ? 'Expenses' : section === 'categories' ? 'Categories' : section === 'budgets' ? 'Budgets' : 'Savings goals'}</h1></div>
           <div className="actions">
             <button className="button secondary" onClick={() => load(true)} disabled={refreshing} aria-busy={refreshing}>
               {refreshing ? <span className="button-spinner" aria-hidden="true" /> : <Icon name="refresh" />}
@@ -161,6 +186,7 @@ export default function App() {
 
             {section === 'overview' && <Overview expenses={expenses} budgets={budgets} savingsGoals={savingsGoals} onExpense={() => {setSection('expenses');setShowExpenseForm(true)}} />}
             {section === 'expenses' && <Expenses expenses={expenses} onAdd={() => setShowExpenseForm(true)} onDelete={removeExpense} />}
+            {section === 'categories' && <Categories categories={categories} form={categoryForm} setForm={setCategoryForm} error={categoryError} saving={savingCategory} onSubmit={addCategory} />}
             {section === 'budgets' && <Budgets categories={categories} budgets={budgets} editingBudget={editingBudget} setEditingBudget={setEditingBudget} onSave={saveBudget} onDelete={removeBudget} error={budgetError} />}
             {section === 'savings' && <div className="cards">{savingsGoals.map(goal => <SavingsGoalCard key={goal.id} goal={goal} onFundsAdded={updateGoal}/>)}</div>}
           </>
@@ -233,6 +259,24 @@ function Overview({expenses,budgets,savingsGoals,onExpense}) {
     <div className="panel"><div className="panel-head"><div><h2>Budget snapshot</h2><span>Configured limits</span></div></div>{budgets.length?budgets.map(b=><div className="mini-row" key={b.id}><span>{b.category}</span><b>{money(b.limit)}</b></div>):<Empty text="Create a budget to start planning."/>}</div>
     <div className="panel"><div className="panel-head"><div><h2>Savings progress</h2><span>Your goals</span></div></div>{savingsGoals.length?savingsGoals.map(g=>{const p=g.targetAmount?Math.min(100,Math.round(g.currentAmount/g.targetAmount*100)):0;return <div className="goal-mini" key={g.id}><div><strong>{g.name}</strong><span>{money(g.currentAmount)} / {money(g.targetAmount)}</span></div><div className="progress"><i style={{width:`${p}%`}}/></div></div>}):<Empty text="No savings goals found."/>}</div>
   </div>
+}
+
+function Categories({ categories, form, setForm, error, saving, onSubmit }) {
+  return <div className="category-layout">
+    <section className="panel">
+      <div className="panel-head"><div><h2>Add category</h2><span>Create a category for expenses and budgets.</span></div></div>
+      {error && <div className="alert">{error}</div>}
+      <form className="category-form" onSubmit={onSubmit}>
+        <label>Name<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="e.g. Subscriptions" /></label>
+        <label>Icon<input value={form.icon} onChange={(event) => setForm({ ...form, icon: event.target.value })} maxLength="2" /></label>
+        <label>Color<input type="color" value={form.color} onChange={(event) => setForm({ ...form, color: event.target.value })} /></label>
+        <button className="button primary" type="submit" disabled={saving}>{saving ? 'Saving...' : 'Add category'}</button>
+      </form>
+    </section>
+    <section className="panel"><div className="panel-head"><div><h2>Categories</h2><span>{categories.length} available</span></div></div>
+      <div className="category-list">{categories.map((category) => <div className="category-item" key={category.id}><span className="category-swatch" style={{ background: `${category.color}20` }}>{category.icon || '💰'}</span><strong>{category.name}</strong></div>)}</div>
+    </section>
+  </div>;
 }
 function Expenses({expenses,onAdd,onDelete}) {
   return <section className="panel"><div className="panel-head"><div><h2>All expenses</h2></div><button className="button primary" onClick={onAdd}><Icon name="plus"/> Add expense</button></div>
